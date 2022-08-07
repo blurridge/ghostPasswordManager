@@ -9,6 +9,7 @@
 
 from tkinter import *
 from tkinter import messagebox
+from tkinter import ttk
 from pathlib import Path
 import pandas as pd
 import random
@@ -42,6 +43,7 @@ def save_details():
         website_entry.delete(0, END)
         email_entry.delete(0, END)
         password_entry.delete(0, END)
+        show_details()
 
 # PASSWORD GENERATOR
 
@@ -50,35 +52,77 @@ def create_password():
     new_password = ''.join([random.choice(CHARS) for _ in range(10)])
     password_entry.insert(0, new_password)
 
-# GUI
+# SHOW DETAILS
+
+def clear_data():
+    details_view.delete(*details_view.get_children())
+
+def show_details():
+    path = Path("./user_details.csv")
+    if path.exists():
+        df = pd.read_csv("user_details.csv")
+        clear_data()
+        details_view["column"] = list(df.columns)
+        details_view["show"] = "headings"
+
+        for column in details_view["column"]:
+            details_view.heading(column, text=column)
+            details_view.column(column=column, minwidth=0, width=200, stretch=False)
+
+        df_rows = df.to_numpy().tolist()
+        for row in df_rows:
+            details_view.insert("", "end", values=row)
+
+# GUI SETUP
 
 root = Tk()
 root.title("Ghost by blurridge")
-root.config(padx=20, pady=20)
+root.geometry("700x400")
+root.resizable(False, False)
 
-canvas = Canvas(width=200, height=200, highlightthickness=0)
+tab_control = ttk.Notebook(root)
+home = ttk.Frame(tab_control)
+view = ttk.Frame(tab_control)
+tab_control.add(home, text="Home")
+tab_control.add(view, text="View")
+tab_control.pack(expand=1, fill="both")
+home_widget_frame = Frame(home, width=700, height=400)
+home_widget_frame.pack()
+
+# HOME
+
+canvas = Canvas(home_widget_frame, width=200, height=200, highlightthickness=0)
 ghost_img = PhotoImage(file="ghost_logo.png")
 canvas.create_image(120, 100, image=ghost_img)
 canvas.grid(column=1, row=0)
 
-website_label = Label(text="Website:",font=FONT)
+website_label = Label(home_widget_frame, text="Website:",font=FONT)
 website_label.grid(column=0, row=1)
-email_label = Label(text="Email/Username:", font=FONT)
+email_label = Label(home_widget_frame, text="Email/Username:", font=FONT)
 email_label.grid(column=0, row=2)
-password_label = Label(text="Password:",font=FONT)
+password_label = Label(home_widget_frame, text="Password:",font=FONT)
 password_label.grid(column=0, row=3)
 
-website_entry = Entry(width=36, bg="white", fg="black", insertbackground="black")
+website_entry = Entry(home_widget_frame, width=36, bg="white", fg="black", insertbackground="black")
 website_entry.grid(column=1, row=1, columnspan=2, sticky="w")
 website_entry.focus()
-email_entry = Entry(width=36, bg="white", fg="black", insertbackground="black")
+email_entry = Entry(home_widget_frame, width=36, bg="white", fg="black", insertbackground="black")
 email_entry.grid(column=1, row=2, columnspan=2, sticky="w")
-password_entry = Entry(width=21, bg="white", fg="black", insertbackground="black")
+password_entry = Entry(home_widget_frame, width=21, bg="white", fg="black", insertbackground="black")
 password_entry.grid(column=1, row=3, sticky="w")
 
-generate_btn = Button(text="Generate Password", width=11, bg="white", fg="black", command=create_password)
+generate_btn = Button(home_widget_frame, text="Generate Password", width=11, bg="white", fg="black", command=create_password)
 generate_btn.grid(column=2, row=3, sticky="w")
-add_btn = Button(text="Add", width=33, command=save_details)
+add_btn = Button(home_widget_frame, text="Add", width=33, command=save_details)
 add_btn.grid(column=1, row=4, columnspan=2, sticky="w")
+
+# VIEW 
+
+details_view = ttk.Treeview(view)
+scrolly = ttk.Scrollbar(view, orient="vertical", command=details_view.yview)
+details_view.configure(yscrollcommand=scrolly.set)
+details_view.pack()
+scrolly.pack(side="right", fill="y")
+show_details()
 
 root.mainloop()
