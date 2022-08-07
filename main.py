@@ -67,7 +67,8 @@ def show_details():
 
         for column in details_view["column"]:
             details_view.heading(column, text=column)
-            details_view.column(column=column, minwidth=0, width=200, stretch=False)
+            col_width = 250 if column == "Email" else 150
+            details_view.column(column=column, minwidth=0, width=col_width, stretch=False)
 
         df_rows = df.to_numpy().tolist()
         for row in df_rows:
